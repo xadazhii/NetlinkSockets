@@ -1,6 +1,6 @@
 # 🔗 USB Monitor using Netlink
 
-USB Monitor is an advanced desktop application for Linux, developed in C++ and Qt, providing real-time tracking of USB device connections and disconnections. It's designed to be highly efficient and deliver detailed information.
+USB Monitor is desktop application for Linux, developed in C++ and Qt, providing real-time tracking of USB device connections and disconnections. It's designed to be highly efficient and deliver detailed information.
 
 The key to its uniqueness is the use of **Netlink sockets**. This offers a fast, direct communication channel between the Linux kernel and user-space applications. Thanks to Netlink, USB Monitor gets immediate notifications about device events as soon as they occur. This is far more efficient than older methods that relied on constantly scanning `dmesg` system logs or `/sys` files.
 
@@ -73,6 +73,19 @@ The Worker waits in an infinite loop for data using the `select()` function, whi
 
 Each received message is a null-byte-separated string containing `KEY=VALUE` pairs. This data is parsed into a map for easy access.
 
+  ```bash
+    void USBWorker::parseUEvent(const char* buffer, std::map<std::string, std::string>& uevent_data) {
+        const char* s = buffer;
+        while (*s) {
+            std::string line(s);
+            if (const size_t equals_pos = line.find('='); equals_pos != std::string::npos) {
+                uevent_data[line.substr(0, equals_pos)] = line.substr(equals_pos + 1);
+            }
+            s += line.length() + 1;
+        }
+    }
+   ```
+
 The application intelligently filters events, focusing only on those with `SUBSYSTEM` set to `usb` or `block`. Why both?
 
 * A `usb` event contains basic connection information (Vendor ID, Product ID).
@@ -117,15 +130,14 @@ The screenshot presents a dual monitoring setup.
 * In the **upper part**, Wireshark with `nlmon0` captures *general* Netlink packets as network traffic. Although Wireshark may not always fully parse *all* nuances of UEVENT messages (due to Netlink protocol specifics and `nlmon` capture peculiarities), it confirms that Netlink packets exist and are transmitted through the kernel.
 * In the **lower part**, the terminal with `udevadm monitor` directly displays *target* Netlink UEVENT events in an easy-to-read format. This *clearly confirms* the generation of these events by the kernel upon USB device connection. This C++ program performs a similar process, programmatically listening to these same events.
 
-This confirms the ability not only to develop a program that listens to these events (your C++ code) but also to visualize them using specialized tools, which is crucial for debugging and verification.
-
 ---
 ## **Building and Running**
 
 1.  **Clone the repository:**
 
     ```bash
-    git clone <git@github.com:xadazhii/NetlinkSockets.git>
+    git clone https://github.com/xadazhii/NetlinkSockets.git
+    cd ./NetlinkSockets
     ```
 
 2.  **Install dependencies** (example for Debian/Ubuntu based systems):
@@ -138,15 +150,16 @@ This confirms the ability not only to develop a program that listens to these ev
 3.  **Build the project using `qmake` and `make`:**
 
     ```bash
-    qmake6
-    make -j$(nproc)
+    mkdir build
+    cd build
+    cmake .. 
+    make -j$(nproc) 
     ```
-    *If `qmake` on your system defaults to Qt5, explicitly use the `qmake6` command.*
 
 4.  **Run the application:** The executable (typically named after your project) will be created in the current directory.
 
     ```bash
-    ./NetlinkSockets
+    ./USBdevice
     ```
 ---
 
