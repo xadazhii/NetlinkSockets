@@ -136,7 +136,7 @@ The screenshot presents a dual monitoring setup.
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/xadazhii/NetlinkSockets.git
+    git clone https://github.com/xadazhii/netlink-sockets.git
     cd ./NetlinkSockets
     ```
 
