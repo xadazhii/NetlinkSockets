@@ -34,9 +34,9 @@ void USBMonitorGUI::setupUI() {
     statusLabel = new QLabel("Ready to monitor", this);
     statusLabel->setObjectName("statusLabel");
 
-    startButton = new QPushButton(QIcon::fromTheme("media-playback-start", QIcon(":/icons/start.png")), " Start Monitoring", this);
-    stopButton = new QPushButton(QIcon::fromTheme("media-playback-stop", QIcon(":/icons/stop.png")), " Stop Monitoring", this);
-    auto *exitButton = new QPushButton(QIcon::fromTheme("application-exit", QIcon(":/icons/exit.png")), " Exit", this);
+    startButton = new QPushButton( " Start Monitoring", this);
+    stopButton = new QPushButton(" Stop Monitoring", this);
+    auto *exitButton = new QPushButton(" Exit", this);
 
     headerLayout->addWidget(statusLabel);
     headerLayout->addStretch();
@@ -183,35 +183,8 @@ void USBMonitorGUI::stopMonitoring() const {
 void USBMonitorGUI::onDeviceConnected(const QString &deviceInfo, const QString &port) const {
     logToConsole(QString("✅ UPDATE/CONNECT on port %1").arg(port));
 
-    QIcon statusIcon;
-    QString typeToolTip;
-
-    if (deviceInfo.contains("Storage:", Qt::CaseInsensitive)) {
-        statusIcon = QIcon::fromTheme("drive-removable-media", QIcon(":/icons/drive.png"));
-        typeToolTip = "Storage Device";
-    } else if (deviceInfo.contains("Keyboard", Qt::CaseInsensitive)) {
-        statusIcon = QIcon::fromTheme("input-keyboard", QIcon(":/icons/keyboard.png"));
-        typeToolTip = "Keyboard";
-    } else if (deviceInfo.contains("Mouse", Qt::CaseInsensitive)) {
-        statusIcon = QIcon::fromTheme("input-mouse", QIcon(":/icons/mouse.png"));
-        typeToolTip = "Mouse";
-    } else if (deviceInfo.contains("Hub", Qt::CaseInsensitive)) {
-        statusIcon = QIcon::fromTheme("network-hub", QIcon(":/icons/hub.png"));
-        typeToolTip = "USB Hub";
-    } else {
-        statusIcon = QIcon::fromTheme("multimedia-player", QIcon(":/icons/usb.png")); // Generic device icon
-        typeToolTip = "Generic USB Device";
-    }
-
-    for (int i = 0; i < deviceTable->rowCount(); ++i) {
-        if (deviceTable->item(i, 1) && deviceTable->item(i, 1)->text() == port) {
-            deviceTable->item(i, 0)->setIcon(statusIcon);
-            deviceTable->item(i, 0)->setToolTip(typeToolTip);
-            deviceTable->item(i, 2)->setText(deviceInfo);
-            deviceTable->item(i, 3)->setText(QTime::currentTime().toString("HH:mm:ss"));
-            return;
-        }
-    }
+    const QString typeToolTip;
+    const QIcon statusIcon = QIcon::fromTheme("multimedia-player");
 
     const int row = deviceTable->rowCount();
     deviceTable->insertRow(row);
