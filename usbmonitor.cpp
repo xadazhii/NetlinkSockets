@@ -9,32 +9,37 @@
 #include <QAbstractAnimation>
 #include <QEasingCurve>
 
+// Constructor: Initializes the USBMonitorGUI object and sets up the UI and styles.
 USBMonitorGUI::USBMonitorGUI(QWidget *parent)
     : QMainWindow(parent), workerThread(nullptr), worker(nullptr) {
     setupUI();
     applyStyles();
 }
 
+// Destructor: Ensures monitoring is stopped and resources are cleaned up.
 USBMonitorGUI::~USBMonitorGUI() {
     stopMonitoring();
 }
 
+// Sets up the user interface components for the USB monitor.
 void USBMonitorGUI::setupUI() {
     setWindowTitle("USB Device Monitor");
     setWindowIcon(QIcon::fromTheme("drive-removable-media-usb"));
     resize(850, 600);
 
+    // Create the central widget and layout.
     auto *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
     auto *layout = new QVBoxLayout(centralWidget);
     layout->setSpacing(10);
     layout->setContentsMargins(15, 15, 15, 15);
 
+    // Create the header layout with status label and buttons.
     auto *headerLayout = new QHBoxLayout();
     statusLabel = new QLabel("Ready to monitor", this);
     statusLabel->setObjectName("statusLabel");
 
-    startButton = new QPushButton( " Start Monitoring", this);
+    startButton = new QPushButton(" Start Monitoring", this);
     stopButton = new QPushButton(" Stop Monitoring", this);
     auto *exitButton = new QPushButton(" Exit", this);
 
@@ -46,6 +51,7 @@ void USBMonitorGUI::setupUI() {
 
     stopButton->setEnabled(false);
 
+    // Create the device table for displaying connected devices.
     deviceTable = new QTableWidget(this);
     deviceTable->setColumnCount(4);
     deviceTable->setHorizontalHeaderLabels({"", "Device Path", "Information", "Timestamp"});
@@ -61,17 +67,20 @@ void USBMonitorGUI::setupUI() {
     header->setSectionResizeMode(3, QHeaderView::ResizeToContents);
     layout->addWidget(deviceTable);
 
+    // Create the console output for logging messages.
     consoleOutput = new QTextEdit(this);
     consoleOutput->setReadOnly(true);
     consoleOutput->setMaximumHeight(120);
     layout->addWidget(consoleOutput);
     layout->addWidget(exitButton);
 
+    // Connect button signals to their respective slots.
     connect(startButton, &QPushButton::clicked, this, &USBMonitorGUI::startMonitoring);
     connect(stopButton, &QPushButton::clicked, this, &USBMonitorGUI::stopMonitoring);
     connect(exitButton, &QPushButton::clicked, qApp, &QApplication::quit);
 }
 
+// Applies custom styles to the UI components.
 void USBMonitorGUI::applyStyles() {
     setStyleSheet(R"(
         QMainWindow {
@@ -151,6 +160,7 @@ void USBMonitorGUI::applyStyles() {
     )");
 }
 
+// Starts monitoring USB devices by creating a worker thread.
 void USBMonitorGUI::startMonitoring() {
     if (workerThread && workerThread->isRunning()) return;
 
@@ -158,6 +168,7 @@ void USBMonitorGUI::startMonitoring() {
     worker = new USBWorker();
     worker->moveToThread(workerThread);
 
+    // Connect worker signals to GUI slots.
     connect(workerThread, &QThread::started, worker, &USBWorker::startMonitoring);
     connect(worker, &USBWorker::finished, this, &USBMonitorGUI::cleanupThread);
     connect(worker, &USBWorker::logMessage, this, &USBMonitorGUI::logToConsole);
@@ -166,20 +177,22 @@ void USBMonitorGUI::startMonitoring() {
 
     workerThread->start();
 
-    startButton->setEnabled(false);
-    stopButton->setEnabled(true);
+    startButton->setEnabled(false); // Disable start button while monitoring.
+    stopButton->setEnabled(true);  // Enable stop button.
     statusLabel->setText("Monitoring Active...");
 }
 
+// Stops monitoring USB devices and updates the UI.
 void USBMonitorGUI::stopMonitoring() const {
     if (worker) {
         worker->stopMonitoring();
     }
-    startButton->setEnabled(true);
-    stopButton->setEnabled(false);
+    startButton->setEnabled(true); // Enable start button.
+    stopButton->setEnabled(false); // Disable stop button.
     statusLabel->setText("Monitoring Stopped");
 }
 
+// Handles the event when a device is connected.
 void USBMonitorGUI::onDeviceConnected(const QString &deviceInfo, const QString &port) const {
     logToConsole(QString("✅ UPDATE/CONNECT on port %1").arg(port));
 
@@ -190,6 +203,7 @@ void USBMonitorGUI::onDeviceConnected(const QString &deviceInfo, const QString &
     deviceTable->insertRow(row);
     deviceTable->setRowHeight(row, 50);
 
+    // Add device information to the table.
     auto *iconItem = new QTableWidgetItem();
     iconItem->setIcon(statusIcon);
     iconItem->setTextAlignment(Qt::AlignCenter);
@@ -202,9 +216,11 @@ void USBMonitorGUI::onDeviceConnected(const QString &deviceInfo, const QString &
     deviceTable->scrollToBottom();
 }
 
+// Handles the event when a device is disconnected.
 void USBMonitorGUI::onDeviceDisconnected(const QString &deviceInfo, const QString &port) {
     logToConsole(QString("❌ DISCONNECTED from port %1").arg(port));
 
+    // Find and remove the disconnected device from the table.
     for (int i = 0; i < deviceTable->rowCount(); ++i) {
         if (deviceTable->item(i, 1) && deviceTable->item(i, 1)->text() == port) {
             removeRowWithAnimation(i);
@@ -213,6 +229,7 @@ void USBMonitorGUI::onDeviceDisconnected(const QString &deviceInfo, const QStrin
     }
 }
 
+// Removes a row from the table with a fade-out animation.
 void USBMonitorGUI::removeRowWithAnimation(int row) {
     const auto rowWidget = new QWidget();
     auto* effect = new QGraphicsOpacityEffect(rowWidget);
@@ -224,6 +241,7 @@ void USBMonitorGUI::removeRowWithAnimation(int row) {
     animation->setEndValue(0.0);
     animation->setEasingCurve(QEasingCurve::OutQuad);
 
+    // Remove the row after the animation finishes.
     connect(animation, &QPropertyAnimation::finished, [this, row]() {
         if (row < deviceTable->rowCount()) {
              deviceTable->removeRow(row);
@@ -234,11 +252,12 @@ void USBMonitorGUI::removeRowWithAnimation(int row) {
     deviceTable->setIndexWidget(deviceTable->model()->index(row, 0), rowWidget);
 }
 
-
+// Logs messages to the console output with a timestamp.
 void USBMonitorGUI::logToConsole(const QString &message) const {
     consoleOutput->append(QString("[%1] %2").arg(QTime::currentTime().toString("HH:mm:ss"), message));
 }
 
+// Cleans up the worker thread and deletes associated resources.
 void USBMonitorGUI::cleanupThread() {
     if (workerThread) {
         workerThread->quit();
