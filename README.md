@@ -75,6 +75,16 @@ Upon startup, `USBWorker` creates an `AF_NETLINK` family socket and subscribes t
 
 The Worker waits in an infinite loop for data using the `select()` function, which efficiently blocks the thread until a new event arrives.
 
+ ```bash
+   const int ret = select(netlink_socket + 1, &fds, nullptr, nullptr, &tv);
+     if (ret < 0) {
+       if (errno == EINTR) continue; 
+         perror("select");
+         break;
+     }
+   if (ret == 0) continue;
+ ```
+
 Each received message is a null-byte-separated string containing `KEY=VALUE` pairs. This data is parsed into a map for easy access.
 
   ```bash
@@ -93,11 +103,11 @@ Each received message is a null-byte-separated string containing `KEY=VALUE` pai
 The application intelligently filters events, focusing only on those with `SUBSYSTEM` set to `usb` or `block`. Why both?
 
 * A `usb` event contains basic connection information (Vendor ID, Product ID).
-* A `block` event pertains to block devices (disks) and provides detailed storage information associated with the given USB device.
+* A `block` event pertains to block devices and provides detailed storage information associated with the given USB device.
 
-For an `add` event (connection), external commands (`lsusb`, `lsblk`) are executed to translate technical IDs into human-readable names, models, and sizes.
+For an `add` event, external commands (`lsusb`, `lsblk`) are executed to translate technical IDs into human-readable names, models, and sizes.
 
-For a `remove` event (disconnection), the device is simply identified by its `DEVPATH` and removed from the table.
+For a `remove` event, the device is simply identified by its `DEVPATH` and removed from the table.
 
 ### Safe Communication with GUI
 
@@ -113,12 +123,10 @@ Since `USBWorker` runs in a separate thread, it cannot directly manipulate GUI e
 
 The following components are required to successfully build and run the project:
 
-* **Qt Framework** 
-* **C++ Compiler**
-* **Linux System**
-* **External Command-line Tools**:
-    * `usbutils`: Provides the `lsusb` command for identifying USB devices.
-    * `util-linux`: Provides the `lsblk` command for obtaining information about block devices.
+* **Operating System:** Linux 
+* **C++ Compiler:** С++20
+* **Qt Framework:** Qt5 
+* **Build System:** CMake or qmake
 
 ---
 
