@@ -23,7 +23,7 @@ This project showcases how modern system mechanisms can be leveraged to create c
 
 ## **Visual Overview**
 
-<img width="864" alt="Screenshot 2025-06-16 at 13 43 09" src="https://github.com/user-attachments/assets/7178300d-f4b2-4266-ab76-cdeb0e3970ef" />
+<img width="864" alt="455694081-7178300d-f4b2-4266-ab76-cdeb0e3970ef" src="https://github.com/user-attachments/assets/76ce469b-fe82-41c2-a1df-7810ea6844f5" />
 
 ---
 
@@ -136,7 +136,7 @@ To track device connection/disconnection events in Linux, the **Netlink** mechan
 
 For visualization and verification of this process, a study was conducted using `udevadm monitor` and Wireshark with the `nlmon` module.
 
-<img width="861" alt="Screenshot 2025-06-17 at 15 10 59" src="https://github.com/user-attachments/assets/3d8c9d4f-1646-4802-8114-e4fa7c1358ba" />
+<img width="861" alt="456067941-3d8c9d4f-1646-4802-8114-e4fa7c1358ba" src="https://github.com/user-attachments/assets/29e2512d-45bb-4d42-923b-32698f1b989e" />
 
 The screenshot presents a dual monitoring setup.
 * In the **upper part**, Wireshark with `nlmon0` captures *general* Netlink packets as network traffic. Although Wireshark may not always fully parse *all* nuances of UEVENT messages (due to Netlink protocol specifics and `nlmon` capture peculiarities), it confirms that Netlink packets exist and are transmitted through the kernel.
