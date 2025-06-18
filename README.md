@@ -137,7 +137,9 @@ The screenshot presents a dual monitoring setup.
 
     ```bash
     git clone https://github.com/xadazhii/netlink-sockets.git
-    cd ./NetlinkSockets
+    ```
+    ```bash
+     cd ./netlink-sockets
     ```
 
 2.  **Install dependencies** (example for Debian/Ubuntu based systems):
@@ -146,8 +148,17 @@ The screenshot presents a dual monitoring setup.
     sudo apt update
     sudo apt install build-essential qt6-base-dev qt6-tools-dev usbutils util-linux
     ```
+    
+    ```bash
+    sudo apt install cmake
+    ```
+    
+    ```bash
+    sudo apt update
+    sudo apt install qtbase5-dev qt5-qmake qtchooser
+    ```
 
-3.  **Build the project using `qmake` and `make`:**
+4.  **Build the project using `qmake` and `make`:**
 
     ```bash
     mkdir build
@@ -156,7 +167,7 @@ The screenshot presents a dual monitoring setup.
     make -j$(nproc) 
     ```
 
-4.  **Run the application:** The executable (typically named after your project) will be created in the current directory.
+5.  **Run the application:** The executable (typically named after your project) will be created in the current directory.
 
     ```bash
     ./USBdevice
