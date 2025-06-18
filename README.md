@@ -67,6 +67,10 @@ The project comprises two logically separated components: `USBMonitorGUI` (inter
 
 Upon startup, `USBWorker` creates an `AF_NETLINK` family socket and subscribes to the `NETLINK_KOBJECT_UEVENT` multicast group. This step turns the application into a passive listener for "uevents"—messages the Linux kernel generates whenever hardware states change (connection, disconnection, modification, etc.).
 
+  ```bash
+    netlink_socket = socket(AF_NETLINK, SOCK_RAW, NETLINK_KOBJECT_UEVENT);
+  ```
+
 ### Event Processing (Udev Events)
 
 The Worker waits in an infinite loop for data using the `select()` function, which efficiently blocks the thread until a new event arrives.
@@ -146,18 +150,13 @@ The screenshot presents a dual monitoring setup.
 
     ```bash
     sudo apt update
-    sudo apt install build-essential qt6-base-dev qt6-tools-dev usbutils util-linux
+    sudo apt install build-essential qtbase5-dev qt5-qmake qtchooser
     ```
     
     ```bash
     sudo apt install cmake
     ```
     
-    ```bash
-    sudo apt update
-    sudo apt install qtbase5-dev qt5-qmake qtchooser
-    ```
-
 4.  **Build the project using `qmake` and `make`:**
 
     ```bash
